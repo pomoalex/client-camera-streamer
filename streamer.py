@@ -1,5 +1,5 @@
 # USAGE
-# python streamer.py --server-ip SERVER_IP
+# python client.py --server-ip SERVER_IP
 
 import socket
 import time
@@ -9,9 +9,17 @@ import imagezmq
 from imutils.video import VideoStream
 
 
-@click.command()
-@click.option('--server-ip', 'server_ip', required=True,
-              help='ip address to stream the captured video to')
+def validate_ip_address(ctx, param, value):
+    if value != 'localhost':
+        try:
+            socket.inet_aton(value)
+        except OSError:
+            raise click.BadParameter('server ip must be a valid ip address')
+
+
+@click.command(name='stream_camera')
+@click.option('--server-ip', 'server_ip', callback=validate_ip_address, default='localhost',
+              help='ip address to stream the captured video to, localhost by default')
 @click.option('--pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
 def stream_camera(server_ip, pi):
