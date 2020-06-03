@@ -18,6 +18,7 @@ def validate_ip_address(ctx, param, value):
             socket.inet_aton(value)
         except OSError:
             raise click.BadParameter('server ip must be a valid ip address')
+    return value
 
 
 def send_frames(server_ip, pi):
@@ -39,7 +40,7 @@ def send_frames(server_ip, pi):
 
 
 @click.command(name='stream_camera')
-@click.option('--server-ip', 'server_ip', callback=validate_ip_address, default='localhost',
+@click.option('--server-ip', callback=validate_ip_address, default='localhost', show_default=True,
               help='ip address to stream the captured video to, localhost by default')
 @click.option('--pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
