@@ -1,1 +1,1 @@
-from .stream_sender import StreamSender
+from .stream_handler import StreamSendHandler

@@ -8,7 +8,7 @@ import time
 
 import click
 
-from streaming import StreamSender
+from streaming import StreamSendHandler
 
 
 def validate_ip_address(ctx, param, value):
@@ -26,12 +26,13 @@ def validate_ip_address(ctx, param, value):
 @click.option('--is-pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
 def stream_camera(server_ip, is_pi):
-    stream_sender = StreamSender(server_ip, is_pi)
-    stream_sender.start()
+    stream_send_handler = StreamSendHandler(server_ip, is_pi)
+    stream_send_handler.start()
 
     # keep program alive while intercepting key interrupts
-    while not time.sleep(1):
-        pass
+    while not time.sleep(5):
+        if not stream_send_handler.is_alive():
+            break
 
 
 if __name__ == '__main__':
