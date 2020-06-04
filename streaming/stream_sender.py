@@ -11,13 +11,13 @@ from imutils.video import VideoStream
 
 class StreamSender(threading.Thread):
 
-    def __init__(self, lock, streaming_details, server_ip, is_pi):
+    def __init__(self, lock, last_stream, server_ip, is_pi):
         threading.Thread.__init__(self)
         self.daemon = True
         self.server_ip = server_ip
         self.is_pi = is_pi
         self.lock = lock
-        self.streaming_details = streaming_details
+        self.last_stream = last_stream
 
     def run(self):
         address = 'tcp://{}:5555'.format(self.server_ip)
@@ -33,9 +33,6 @@ class StreamSender(threading.Thread):
 
         print('[INFO] Started capturing and streaming video from camera')
 
-        with self.lock:
-            self.streaming_details[0] = True
-
         while True:
             frame = vs.read()
             frame = imutils.resize(frame, width=480)
@@ -43,4 +40,4 @@ class StreamSender(threading.Thread):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             sender.send_image(host_name, frame)
             with self.lock:
-                self.streaming_details[1] = datetime.now()
+                self.last_stream[0] = datetime.now()
