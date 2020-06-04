@@ -5,13 +5,10 @@
 
 import socket
 import time
-from threading import Thread
 
 import click
-import cv2
-import imagezmq
-import imutils
-from imutils.video import VideoStream
+
+from streaming import StreamSender
 
 
 def validate_ip_address(ctx, param, value):
@@ -23,36 +20,14 @@ def validate_ip_address(ctx, param, value):
     return value
 
 
-def send_frames(server_ip, pi):
-    sender = imagezmq.ImageSender(connect_to='tcp://{}:5555'.format(server_ip))
-    host_name = socket.gethostname()
-
-    if pi:
-        vs = VideoStream(usePiCamera=True).start()
-    else:
-        vs = VideoStream(src=0).start()
-    time.sleep(2.0)
-
-    print("Started capturing and streaming video from camera")
-
-    while True:
-        frame = vs.read()
-        frame = imutils.resize(frame, width=480)
-        cv2.putText(frame, host_name, (10, 25),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-        sender.send_image(host_name, frame)
-
-
 @click.command(name='stream_camera')
 @click.option('--server-ip', callback=validate_ip_address, default='localhost', show_default=True,
               help='ip address to stream the captured video to, localhost by default')
-@click.option('--pi', is_flag=True,
+@click.option('--is-pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
-def stream_camera(server_ip, pi):
-    streaming_thread = Thread(target=send_frames, args=(server_ip, pi,))
-    # daemon threads are terminated after main thread dies
-    streaming_thread.daemon = True
-    streaming_thread.start()
+def stream_camera(server_ip, is_pi):
+    stream_sender = StreamSender(server_ip, is_pi)
+    stream_sender.start()
 
     # keep program alive while intercepting key interrupts
     while not time.sleep(1):
