@@ -8,7 +8,9 @@ import time
 from threading import Thread
 
 import click
+import cv2
 import imagezmq
+import imutils
 from imutils.video import VideoStream
 
 
@@ -23,7 +25,7 @@ def validate_ip_address(ctx, param, value):
 
 def send_frames(server_ip, pi):
     sender = imagezmq.ImageSender(connect_to='tcp://{}:5555'.format(server_ip))
-    device = socket.gethostname()
+    host_name = socket.gethostname()
 
     if pi:
         vs = VideoStream(usePiCamera=True).start()
@@ -35,8 +37,10 @@ def send_frames(server_ip, pi):
 
     while True:
         frame = vs.read()
-        # frame = imutils.resize(frame, width=320) to resize
-        sender.send_image(device, frame)
+        frame = imutils.resize(frame, width=480)
+        cv2.putText(frame, host_name, (10, 25),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        sender.send_image(host_name, frame)
 
 
 @click.command(name='stream_camera')
