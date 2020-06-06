@@ -1,4 +1,5 @@
 import multiprocessing
+import sys
 import threading
 import time
 from datetime import datetime
@@ -8,14 +9,15 @@ from streaming.stream_sender import StreamSender
 
 class StreamSendHandler(threading.Thread):
 
-    def __init__(self, server_ip, is_pi):
+    def __init__(self, server_ip, connection_retries, is_pi):
         threading.Thread.__init__(self)
-        self.daemon = True
-        self.shared_dict = multiprocessing.Manager().dict()
         self.server_ip = server_ip
         self.is_pi = is_pi
+        self.max_connection_retries = connection_retries
+        self.connection_retries = 0
+        self.shared_dict = multiprocessing.Manager().dict()
         self.LIVENESS_CHECK_SECONDS = 5
-        self.MAX_TIMEOUT = 10
+        self.MAX_TIMEOUT = 5
         self.stream_sender = None
         self.stream_launch_time = None
 
@@ -38,6 +40,11 @@ class StreamSendHandler(threading.Thread):
         self.stream_launch_time = datetime.now()
 
     def restart_streaming(self):
-        self.stream_sender.terminate()
-        self.stream_sender.join()
-        self.start_streaming()
+        self.connection_retries += 1
+        if self.max_connection_retries == -1 or self.connection_retries <= self.max_connection_retries:
+            print('[INFO] Retrying connection. Retry no. {}'.format(self.connection_retries))
+            self.stream_sender.terminate()
+            self.stream_sender.join()
+            self.start_streaming()
+        else:
+            sys.exit()

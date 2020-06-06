@@ -31,12 +31,14 @@ class StreamSender(Process):
             vs = VideoStream(src=0).start()
         time.sleep(2)
 
-        print('[INFO] Started capturing and streaming video from camera')
-
+        logged_start = False
         while True:
             frame = vs.read()
             frame = imutils.resize(frame, width=480)
             cv2.putText(frame, host_name, (10, 25),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             sender.send_image(host_name, frame)
+            if not logged_start:
+                print('[INFO] Started capturing and streaming video from camera')
+                logged_start = True
             self.shared_dict['connection'] = datetime.now()
