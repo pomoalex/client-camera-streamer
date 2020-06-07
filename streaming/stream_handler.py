@@ -25,7 +25,7 @@ class StreamSendHandler(threading.Thread):
         self.start_streaming()
         while True:
             time.sleep(self.LIVENESS_CHECK_SECONDS)
-            last_connection = self.shared_dict['connection']
+            last_connection = self.get_last_connection()
             if last_connection is None:
                 if (datetime.now() - self.stream_launch_time).seconds > self.MAX_TIMEOUT:
                     print("[ERROR] Could not connect to {}".format(self.server_ip))
@@ -47,4 +47,10 @@ class StreamSendHandler(threading.Thread):
             self.stream_sender.join()
             self.start_streaming()
         else:
+            sys.exit()
+
+    def get_last_connection(self):
+        try:
+            return self.shared_dict['connection']
+        except BrokenPipeError:
             sys.exit()

@@ -4,6 +4,7 @@
 # python streamer.py
 
 import socket
+import time
 
 import click
 
@@ -34,7 +35,13 @@ def validate_connection_retries(ctx, param, value):
 @click.option('--is-pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
 def stream_camera(server_ip, connection_retries, is_pi):
-    StreamSendHandler(server_ip, connection_retries, is_pi).start()
+    try:
+        stream_handler = StreamSendHandler(server_ip, connection_retries, is_pi)
+        stream_handler.start()
+        while stream_handler.is_alive():
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print('[INFO] Graceful shutdown due to KeyboardInterrupt')
 
 
 if __name__ == '__main__':

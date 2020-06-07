@@ -1,4 +1,5 @@
 import socket
+import sys
 import time
 from datetime import datetime
 from multiprocessing import Process
@@ -20,25 +21,40 @@ class StreamSender(Process):
         self.is_pi = is_pi
 
     def run(self):
+        try:
+            host_name, sender = self.connect()
+            video_stream = self.get_video_stream()
+
+            logged_start = False
+            while True:
+                frame = self.read_and_process_frame(video_stream, host_name)
+                sender.send_image(host_name, frame)
+                self.shared_dict['connection'] = datetime.now()
+                if not logged_start:
+                    print('[INFO] Started capturing and streaming video from camera')
+                    logged_start = True
+
+        except KeyboardInterrupt:
+            pass
+
+    def get_video_stream(self):
+        if self.is_pi:
+            video_stream = VideoStream(usePiCamera=True).start()
+        else:
+            video_stream = VideoStream(src=0).start()
+        time.sleep(2)
+        return video_stream
+
+    def connect(self):
         address = 'tcp://{}:5555'.format(self.server_ip)
         sender = imagezmq.ImageSender(connect_to=address)
         host_name = socket.gethostname()
         print('[INFO] Connecting to {}'.format(address))
+        return host_name, sender
 
-        if self.is_pi:
-            vs = VideoStream(usePiCamera=True).start()
-        else:
-            vs = VideoStream(src=0).start()
-        time.sleep(2)
-
-        logged_start = False
-        while True:
-            frame = vs.read()
-            frame = imutils.resize(frame, width=480)
-            cv2.putText(frame, host_name, (10, 25),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            sender.send_image(host_name, frame)
-            if not logged_start:
-                print('[INFO] Started capturing and streaming video from camera')
-                logged_start = True
-            self.shared_dict['connection'] = datetime.now()
+    def read_and_process_frame(self, video_stream, host_name):
+        frame = video_stream.read()
+        frame = imutils.resize(frame, width=480)
+        cv2.putText(frame, host_name, (10, 25),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        return frame
