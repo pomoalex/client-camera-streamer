@@ -55,6 +55,10 @@ class StreamSender(Process):
     def read_and_process_frame(self, video_stream, host_name):
         frame = video_stream.read()
         frame = imutils.resize(frame, width=480)
+
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
+        _, frame = cv2.imencode('.jpg', frame, encode_param)
+
         cv2.putText(frame, host_name, (10, 25),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         return frame
