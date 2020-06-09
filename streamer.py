@@ -29,9 +29,9 @@ def validate_connection_retries(ctx, param, value):
 
 @click.command(name='stream_camera')
 @click.option('--server-ip', callback=validate_ip_address, default='localhost', show_default=True,
-              help='ip address to stream the captured video to, localhost by default')
+              help='ip address to stream the captured video to')
 @click.option('--connection-retries', callback=validate_connection_retries, default=-1, show_default=True,
-              help='number of attempted connection retries to server, infinitely by default')
+              help='(positive)number of server connection attempts, -1 for infinite tries')
 @click.option('--is-pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
 def stream_camera(server_ip, connection_retries, is_pi):
