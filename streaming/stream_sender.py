@@ -1,5 +1,4 @@
 import socket
-import sys
 import time
 from datetime import datetime
 from multiprocessing import Process
@@ -56,9 +55,24 @@ class StreamSender(Process):
         frame = video_stream.read()
         frame = imutils.resize(frame, width=480)
 
+        self.add_text(frame, host_name, (10, 10), (4, 4))
+
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
         _, frame = cv2.imencode('.jpg', frame, encode_param)
 
-        cv2.putText(frame, host_name, (10, 25),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         return frame
+
+    def add_text(self, frame, text, start_coord, padding):
+        font = cv2.FONT_HERSHEY_PLAIN
+        text_size = cv2.getTextSize(text, font, fontScale=1, thickness=1)[0]
+
+        end_coord = (start_coord[0] + text_size[0] + padding[0], start_coord[1] + text_size[1] + padding[1])
+
+        cv2.rectangle(frame, start_coord, end_coord, color=(255, 255, 255), thickness=-1)
+
+        cv2.putText(frame, text,
+                    org=(start_coord[0] + padding[0] // 2, start_coord[1] + text_size[1] + padding[1] // 2),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1,
+                    color=(0, 0, 0),
+                    thickness=1)
