@@ -32,11 +32,13 @@ def validate_connection_retries(ctx, param, value):
               help='ip address to stream the captured video to')
 @click.option('--connection-retries', callback=validate_connection_retries, default=-1, show_default=True,
               help='(positive)number of server connection attempts, -1 for infinite tries')
+@click.option('--host-name',
+              help='camera screen label, default is device name')
 @click.option('--is-pi', is_flag=True,
               help="specifies that the streaming device is a raspberry pi")
-def stream_camera(server_ip, connection_retries, is_pi):
+def stream_camera(server_ip, connection_retries, is_pi, host_name=None):
     try:
-        stream_handler = StreamSendHandler(server_ip, connection_retries, is_pi)
+        stream_handler = StreamSendHandler(server_ip, connection_retries, is_pi, host_name)
         stream_handler.start()
         while stream_handler.is_alive():
             time.sleep(1)

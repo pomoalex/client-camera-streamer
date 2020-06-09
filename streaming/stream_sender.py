@@ -11,17 +11,20 @@ from imutils.video import VideoStream
 
 class StreamSender(Process):
 
-    def __init__(self, shared_dict, server_ip, is_pi):
+    def __init__(self, shared_dict, server_ip, is_pi, host_name):
         Process.__init__(self)
         self.shared_dict = shared_dict
         self.shared_dict['connection'] = None
         self.daemon = True
         self.server_ip = server_ip
         self.is_pi = is_pi
+        self.host_name = host_name
 
     def run(self):
         try:
             host_name, sender = self.connect()
+            if self.host_name is not None:
+                host_name = self.host_name
             video_stream = self.get_video_stream()
 
             logged_start = False

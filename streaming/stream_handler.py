@@ -9,10 +9,11 @@ from streaming.stream_sender import StreamSender
 
 class StreamSendHandler(threading.Thread):
 
-    def __init__(self, server_ip, connection_retries, is_pi):
+    def __init__(self, server_ip, connection_retries, is_pi, host_name):
         threading.Thread.__init__(self)
         self.server_ip = server_ip
         self.is_pi = is_pi
+        self.host_name = host_name
         self.max_connection_retries = connection_retries
         self.connection_retries = 0
         self.shared_dict = multiprocessing.Manager().dict()
@@ -35,7 +36,7 @@ class StreamSendHandler(threading.Thread):
                 self.restart_streaming()
 
     def start_streaming(self):
-        self.stream_sender = StreamSender(self.shared_dict, self.server_ip, self.is_pi)
+        self.stream_sender = StreamSender(self.shared_dict, self.server_ip, self.is_pi, self.host_name)
         self.stream_sender.start()
         self.stream_launch_time = datetime.now()
 
